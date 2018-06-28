@@ -1,0 +1,16 @@
+# Any copyright is dedicated to the Public Domain.
+# http://creativecommons.org/publicdomain/zero/1.0/
+
+all: glow.lib
+
+glow_win32.obj: glow_win32.c glow.h
+	cl /Foglow_win32.obj /c glow_win32.c /nologo
+
+glow.lib: glow_win32.obj
+	lib /NOLOGO /OUT:glow.lib glow_win32.obj
+
+glow_win32_shared.obj: glow_win32.c glow.h
+	cl /DGLOW_EXPORTS /DGLOW_DLL /Foglow_win32.obj /c glow_win32.c /nologo
+
+glow.dll: glow_win32_shared.obj
+	link /nologo /dll /out:glow.dll /implib:glow.lib OpenGL32.lib gdi32.lib user32.lib glow_win32_shared.obj
