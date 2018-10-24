@@ -48,6 +48,8 @@ static Display *glow_get_display(){
     return NULL;
 }
 
+/******************************************************************************/
+
 static const GLint glow_attribs[] = {
     GLX_X_RENDERABLE, True,
     GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
@@ -62,12 +64,16 @@ static const GLint glow_attribs[] = {
     None
 };
 
+/******************************************************************************/
+
 struct Glow_Context {
     unsigned char gl[2];
     Display *dpy;
     Window wnd;
     GLXContext ctx;
 };
+
+/******************************************************************************/
 
 struct Glow_Window{
     
@@ -86,15 +92,21 @@ struct Glow_Window{
     int mouse_x, mouse_y;
 };
 
+/******************************************************************************/
+
 unsigned Glow_WindowStructSize(){
     return sizeof(struct Glow_Window);
 }
+
+/******************************************************************************/
 
 void Glow_ViewportSize(unsigned w, unsigned h,
     unsigned *out_w, unsigned *out_h){
     out_w[0] = w;
     out_h[0] = h;
 }
+
+/******************************************************************************/
 
 void Glow_CreateWindow(struct Glow_Window *window,
     unsigned w, unsigned h, const char *title, int flags){
@@ -192,6 +204,8 @@ void Glow_CreateWindow(struct Glow_Window *window,
     XSync(window->dpy, False);
 }
 
+/******************************************************************************/
+
 void Glow_DestroyWindow(struct Glow_Window *window){
     XSync(window->dpy, False);
 
@@ -205,9 +219,13 @@ void Glow_DestroyWindow(struct Glow_Window *window){
     XCloseDisplay(window->dpy);
 }
 
+/******************************************************************************/
+
 void Glow_SetTitle(struct Glow_Window *window, const char *title){
     XStoreName(window->dpy, window->wnd, title);
 }
+
+/******************************************************************************/
 
 void Glow_ShowWindow(struct Glow_Window *window){
     XClearWindow(window->dpy, window->wnd);
@@ -220,9 +238,13 @@ void Glow_ShowWindow(struct Glow_Window *window){
     }
 }
 
+/******************************************************************************/
+
 void Glow_HideWindow(struct Glow_Window *window){
     XUnmapWindow(window->dpy, window->wnd);
 }
+
+/******************************************************************************/
 
 void Glow_GetWindowSize(const struct Glow_Window *window,
     unsigned *out_w, unsigned *out_h){
@@ -230,12 +252,16 @@ void Glow_GetWindowSize(const struct Glow_Window *window,
     out_h[0] = window->h;
 }
 
+/******************************************************************************/
+
 void Glow_FlipScreen(struct Glow_Window *window){
     Glow_MakeCurrent(window->ctx);
     glFlush();
     glXSwapBuffers(window->dpy, window->wnd);
     glClear(GL_COLOR_BUFFER_BIT);
 }
+
+/******************************************************************************/
 
 static unsigned glow_get_event(struct Glow_Window *window,
     unsigned block, struct Glow_Event *out){
@@ -297,17 +323,26 @@ glow_get_event_start:
     return 0;
 }
 
+/******************************************************************************/
+
 unsigned Glow_GetEvent(struct Glow_Window *window,
     struct Glow_Event *out_event){
     return glow_get_event(window, 0, out_event);
+
 }
+/******************************************************************************/
+
 void Glow_WaitEvent(struct Glow_Window *window, struct Glow_Event *out_event){
     glow_get_event(window, 1, out_event);
 }
 
+/******************************************************************************/
+
 unsigned Glow_ContextStructSize(){
     return sizeof(struct Glow_Context);
 }
+
+/******************************************************************************/
 
 int Glow_CreateContext(struct Glow_Window *window,
     struct Glow_Context *opt_share,
@@ -360,19 +395,27 @@ int Glow_CreateContext(struct Glow_Window *window,
     return 0;
 }
 
+/******************************************************************************/
+
  struct Glow_Context *Glow_GetContext(
     struct Glow_Window *window){
     return window->ctx;
 }
+
+/******************************************************************************/
 
 void Glow_CreateLegacyContext(struct Glow_Window *window,
     struct Glow_Context *out){
     Glow_CreateContext(window, NULL, 2, 1, out);
 }
 
+/******************************************************************************/
+
 void Glow_MakeCurrent(struct Glow_Context *ctx){
     glXMakeCurrent(ctx->dpy, ctx->wnd, ctx->ctx);
 }
+
+/******************************************************************************/
 
 struct Glow_Window *Glow_CreateLegacyWindow(unsigned w, unsigned h,
     const char *title){
