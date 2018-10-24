@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#if defined __GNUC__ && __GNUC__ >= 4
+#ifdef __GNUC__ && __GNUC__ > 4
 #define GLOW_CONST __attribute__((const))
 #define GLOW_PURE __attribute__((pure))
 #define GLOW_RETURNS_NOT_NULL __attribute__((returns_nonnull))
@@ -109,7 +109,7 @@ GLOW_EXPORT void Glow_ViewportSize(unsigned w, unsigned h,
  * @brief Gets the underlying OS window for this GLow Window.
  *
  * On Win32 this is a HWND
- * On Haiku, the BGLView is returned (not a window technically, but still)
+ * On Haiku, the BGLView is returned.
  * On X11, the Window is returned.
  * On Cocoa, Something happens (TODO!)
  * On SDL2, the system's window is passed back.
@@ -128,7 +128,7 @@ GLOW_EXPORT GLOW_CONST unsigned Glow_WindowStructSize(void);
  * @brief Creates a Window
  *
  * The window is hidden by default.
- *
+ * 
  * @sa Glow_ShowWindow
  */
 GLOW_EXPORT void Glow_CreateWindow(struct Glow_Window *out,
@@ -250,7 +250,7 @@ GLOW_EXPORT void Glow_MakeCurrent(struct Glow_Context *ctx);
  * @warning Unlike all the other calls for Glow, this one uses malloc to
  * allocate memory. You must call Glow_DestroyWindow and then free on the
  * returned Window to properly free the memory.
- *
+ * 
  * @sa Glow_CreateLegacyContext
  * @sa Glow_CreateWindow
  */

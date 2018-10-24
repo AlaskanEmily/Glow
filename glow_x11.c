@@ -22,11 +22,8 @@
 #endif
 
 #include <assert.h>
-#include <stdlib.h>
-
-#ifndef NDEBUG
 #include <stdio.h>
-#endif
+#include <stdlib.h>
 
 #define GLOW_X_EVENT_MASK\
     (StructureNotifyMask\
@@ -51,8 +48,6 @@ static Display *glow_get_display(){
     return NULL;
 }
 
-/******************************************************************************/
-
 static const GLint glow_attribs[] = {
     GLX_X_RENDERABLE, True,
     GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
@@ -67,16 +62,12 @@ static const GLint glow_attribs[] = {
     None
 };
 
-/******************************************************************************/
-
 struct Glow_Context {
     unsigned char gl[2];
     Display *dpy;
     Window wnd;
     GLXContext ctx;
 };
-
-/******************************************************************************/
 
 struct Glow_Window{
     
@@ -95,13 +86,15 @@ struct Glow_Window{
     int mouse_x, mouse_y;
 };
 
-/******************************************************************************/
-
 unsigned Glow_WindowStructSize(){
     return sizeof(struct Glow_Window);
 }
 
-/******************************************************************************/
+void Glow_ViewportSize(unsigned w, unsigned h,
+    unsigned *out_w, unsigned *out_h){
+    out_w[0] = w;
+    out_h[0] = h;
+}
 
 void Glow_CreateWindow(struct Glow_Window *window,
     unsigned w, unsigned h, const char *title, int flags){
@@ -117,9 +110,7 @@ void Glow_CreateWindow(struct Glow_Window *window,
     window->ctx = NULL;
 
     if(window->dpy == NULL){
-#ifndef NDEBUG
         fputs("Could not open an X11 display\n", stderr);
-#endif
         return;
     }
     
@@ -132,9 +123,7 @@ void Glow_CreateWindow(struct Glow_Window *window,
         GLXFBConfig *const config = glXChooseFBConfig(window->dpy,
             window->scr_id, glow_attribs, &num);
         if(config == NULL || num == 0){
-#ifndef NDEBUG
             fputs("Could not get glX framebuffer configuration\n", stderr);
-#endif
             XCloseDisplay(window->dpy);
             window->dpy = NULL;
             return;
@@ -168,17 +157,13 @@ void Glow_CreateWindow(struct Glow_Window *window,
     /* Get a glX visual info for the fbconfig */
     window->vis = glXGetVisualFromFBConfig(window->dpy, window->fbconfig);
     if(window->vis == NULL){
-#ifndef NDEBUG
         fputs("Could not create a glX visual\n", stderr);
-#endif
         XCloseDisplay(window->dpy);
         window->dpy = NULL;
         return;
     }
     if(window->scr_id != window->vis->screen){
-#ifndef NDEBUG
         fputs("Screen does not match a given visual\n", stderr);
-#endif
         XCloseDisplay(window->dpy);
         window->dpy = NULL;
         return;
@@ -207,8 +192,6 @@ void Glow_CreateWindow(struct Glow_Window *window,
     XSync(window->dpy, False);
 }
 
-/******************************************************************************/
-
 void Glow_DestroyWindow(struct Glow_Window *window){
     XSync(window->dpy, False);
 
@@ -221,8 +204,6 @@ void Glow_DestroyWindow(struct Glow_Window *window){
 
     XCloseDisplay(window->dpy);
 }
-
-/******************************************************************************/
 
 void Glow_SetTitle(struct Glow_Window *window, const char *title){
     XStoreName(window->dpy, window->wnd, title);
@@ -239,13 +220,9 @@ void Glow_ShowWindow(struct Glow_Window *window){
     }
 }
 
-/******************************************************************************/
-
 void Glow_HideWindow(struct Glow_Window *window){
     XUnmapWindow(window->dpy, window->wnd);
 }
-
-/******************************************************************************/
 
 void Glow_GetWindowSize(const struct Glow_Window *window,
     unsigned *out_w, unsigned *out_h){
@@ -253,16 +230,12 @@ void Glow_GetWindowSize(const struct Glow_Window *window,
     out_h[0] = window->h;
 }
 
-/******************************************************************************/
-
 void Glow_FlipScreen(struct Glow_Window *window){
     Glow_MakeCurrent(window->ctx);
-	glFlush();
+    glFlush();
     glXSwapBuffers(window->dpy, window->wnd);
-	glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
-
-/******************************************************************************/
 
 static unsigned glow_get_event(struct Glow_Window *window,
     unsigned block, struct Glow_Event *out){
@@ -284,11 +257,39 @@ glow_get_event_start:
                 out->type = press ?
                     eGlowKeyboardPressed : eGlowKeyboardReleased;
                 return 1;
+            case ButtonPress:
+                press = 1u;
+            case ButtonRelease:
+                out->type = press ?
+                    eGlowMousePressed : eGlowMouseReleased;
+                out->value.mouse.xy[0] = event.xbutton.x;
+                out->value.mouse.xy[1] = event.xbutton.y;
+                switch(event.xbutton.button){
+                    case Button1: /* Left click */
+                        out->value.mouse.button = eGlowLeft;
+                        break;
+                    case Button2: /* Middle click */
+                        out->value.mouse.button = eGlowMiddle;
+                        break;
+                    case Button3: /* Right click */
+                        out->value.mouse.button = eGlowRight;
+                        break;
+                    default: /*
+                        fputs("Unexpected ", stdout);
+                        fputs(press ? "Pressed " : "Released ", stdout);
+                        printf("%i\n", event.xbutton.button); */
+                        if(block) /* TCO doesn't work here for all compilers :( */
+                            goto glow_get_event_start;
+                        else
+                            return 0;
+                }
+                return 1;
             case UnmapNotify:
             case DestroyNotify:
                 out->type = eGlowQuit;
                 return 1;
             default:
+                /* printf("Unexpected event %i\n", event.type); */
                 if(block) /* TCO doesn't work here for all compilers :( */
                     goto glow_get_event_start;
         }
@@ -296,26 +297,17 @@ glow_get_event_start:
     return 0;
 }
 
-/******************************************************************************/
-
 unsigned Glow_GetEvent(struct Glow_Window *window,
     struct Glow_Event *out_event){
     return glow_get_event(window, 0, out_event);
 }
-
-/******************************************************************************/
-
 void Glow_WaitEvent(struct Glow_Window *window, struct Glow_Event *out_event){
     glow_get_event(window, 1, out_event);
 }
 
-/******************************************************************************/
-
 unsigned Glow_ContextStructSize(){
     return sizeof(struct Glow_Context);
 }
-
-/******************************************************************************/
 
 int Glow_CreateContext(struct Glow_Window *window,
     struct Glow_Context *opt_share,
@@ -337,29 +329,19 @@ int Glow_CreateContext(struct Glow_Window *window,
     out->dpy = window->dpy;
     out->wnd = window->wnd;
     
-    typedef GLXContext (*glXCreateContextAttribsARB_t)(Display*,
-        GLXFBConfig,
-        GLXContext,
-        Bool, const int*);
-    
+    typedef GLXContext (*glXCreateContextAttribsARB_t)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
     const glXCreateContextAttribsARB_t glXCreateContextAttribsARB =
-        (glXCreateContextAttribsARB_t)glXGetProcAddressARB(
-        (const GLubyte*)"glXCreateContextAttribsARB");
+        (glXCreateContextAttribsARB_t)glXGetProcAddressARB((const GLubyte*)"glXCreateContextAttribsARB");
     const GLXContext share_ctx = opt_share != NULL ? opt_share->ctx : 0;
 
     if(glXCreateContextAttribsARB == NULL){
-#ifndef NDEBUG
-        fputs("Could not use glXCreateContextAttribsARB."
-            " expect the wrong version of OpenGL\n", stderr);
-#endif
+        fputs("Could not use glXCreateContextAttribsARB, expect the wrong version of OpenGL\n", stderr);
         if(major > 2)
             return -1;
-        out->ctx = glXCreateNewContext(out->dpy,
-            window->fbconfig, GLX_RGBA_TYPE, share_ctx, True);
+        out->ctx = glXCreateNewContext(out->dpy, window->fbconfig, GLX_RGBA_TYPE, share_ctx, True);
     }
     else{
-        out->ctx = glXCreateContextAttribsARB(out->dpy,
-            window->fbconfig, share_ctx, True, context_attribs);
+        out->ctx = glXCreateContextAttribsARB(out->dpy, window->fbconfig, share_ctx, True, context_attribs);
     }
     
     if(window->ctx != NULL)
@@ -371,34 +353,26 @@ int Glow_CreateContext(struct Glow_Window *window,
     Glow_MakeCurrent(window->ctx);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-	glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     glClearColor(0.75f, 0.333f, 0.0f, 1.0f);
     glFinish();
     
     return 0;
 }
 
-/******************************************************************************/
-
  struct Glow_Context *Glow_GetContext(
     struct Glow_Window *window){
     return window->ctx;
 }
-
-/******************************************************************************/
 
 void Glow_CreateLegacyContext(struct Glow_Window *window,
     struct Glow_Context *out){
     Glow_CreateContext(window, NULL, 2, 1, out);
 }
 
-/******************************************************************************/
-
 void Glow_MakeCurrent(struct Glow_Context *ctx){
     glXMakeCurrent(ctx->dpy, ctx->wnd, ctx->ctx);
 }
-
-/******************************************************************************/
 
 struct Glow_Window *Glow_CreateLegacyWindow(unsigned w, unsigned h,
     const char *title){

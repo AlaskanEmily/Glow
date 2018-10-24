@@ -15,16 +15,16 @@
 /******************************************************************************/
 
 struct Glow_Context{
-	HDC dc;
-	HGLRC ctx;
-	unsigned gl_mag, gl_min;
+    HDC dc;
+    HGLRC ctx;
+    unsigned gl_mag, gl_min;
 };
 
 /******************************************************************************/
 
 struct Glow_Window {
-	HDC dc;
-	HWND win;
+    HDC dc;
+    HWND win;
     struct Glow_Context ctx;
 };
 
@@ -53,50 +53,56 @@ static HINSTANCE glow_app = NULL;
 
 /******************************************************************************/
 
-static void glow_translate_local_mouse_pos(const POINT *pnt,
-	struct Glow_Window *w, glow_pixel_coords_t out_pos){
-	RECT rect;
-	GetWindowRect(w->win, &rect);
+static void glow_translate_local_mouse_pos(const POINT *in_pnt,
+    struct Glow_Window *w, glow_pixel_coords_t out_pos){
+    RECT rect;
+    POINT pnt;
+    pnt.x = in_pnt->x - 4;
+    pnt.y = in_pnt->y - (GetSystemMetrics(SM_CYFRAME) +
+        GetSystemMetrics(SM_CYCAPTION) +
+        GetSystemMetrics(SM_CXPADDEDBORDER));
 
-	out_pos[0] = (unsigned short)(pnt->x - rect.left);
-	out_pos[1] = (unsigned short)(pnt->y - rect.top);
-	
-	if(!PtInRect(&rect, *pnt)){
-		if(pnt->x < rect.left)
-			out_pos[0] = 0;
-		else if(pnt->x > rect.right)
-			out_pos[0] = (unsigned short)(rect.right - rect.left);
-		
-		if(pnt->y < rect.top)
-			out_pos[1] = 0;
-		else if(pnt->y > rect.bottom)
-			out_pos[1] = (unsigned short)(rect.bottom - rect.top);
-	}
+    GetWindowRect(w->win, &rect);
+
+    out_pos[0] = (unsigned short)(pnt.x - rect.left);
+    out_pos[1] = (unsigned short)(pnt.y - rect.top);
+
+    if(!PtInRect(&rect, pnt)){
+        if(pnt.x < rect.left)
+            out_pos[0] = 0;
+        else if(pnt.x > rect.right)
+            out_pos[0] = (unsigned short)(rect.right - rect.left);
+        
+        if(pnt.y < rect.top)
+            out_pos[1] = 0;
+        else if(pnt.y > rect.bottom)
+            out_pos[1] = (unsigned short)(rect.bottom - rect.top);
+    }
 }
 
 /******************************************************************************/
 
 static char glow_get_key_char(unsigned in){
-	if(in <= 0x5A && in >= 0x41)
-		return (in - 0x41) + 'a';
-	if(in <= 0x39 && in >= 0x30)
-		return (in - 0x30) + '0';
-	if(in == VK_SPACE)
-		return ' ';
-	if(in == VK_OEM_2)
-		return '/';
-	if(in == VK_OEM_3)
-		return '~';
-	if(in == VK_OEM_4)
-		return '[';
-	if(in == VK_OEM_5 || in == VK_OEM_102)
-		return '\\';
-	if(in == VK_OEM_6)
-		return ']';
-	if(in == VK_OEM_7)
-		return '\'';
-	
-	return '\0';
+    if(in <= 0x5A && in >= 0x41)
+        return (in - 0x41) + 'a';
+    if(in <= 0x39 && in >= 0x30)
+        return (in - 0x30) + '0';
+    if(in == VK_SPACE)
+        return ' ';
+    if(in == VK_OEM_2)
+        return '/';
+    if(in == VK_OEM_3)
+        return '~';
+    if(in == VK_OEM_4)
+        return '[';
+    if(in == VK_OEM_5 || in == VK_OEM_102)
+        return '\\';
+    if(in == VK_OEM_6)
+        return ']';
+    if(in == VK_OEM_7)
+        return '\'';
+        
+    return '\0';
 }
 
 /*****************************************************************************/
@@ -104,21 +110,21 @@ static char glow_get_key_char(unsigned in){
 static const char *glow_get_key_string(unsigned in, unsigned *len){
 #define GLOW_IN_VK(N, VAL) case N: len[0] = sizeof(VAL) - 1; assert(sizeof(VAL) < 16); return VAL
 #define GLOW_OEM_VK(N) case VK_OEM_ ## N: len[0] = sizeof("OEM_" #N ) - 1; return "OEM_" #N
-	switch(in){
-		GLOW_IN_VK(VK_ESCAPE, GLOW_ESCAPE);
-		case VK_LSHIFT: case VK_RSHIFT:
-		GLOW_IN_VK(VK_SHIFT, GLOW_SHIFT);
-		case VK_LCONTROL: case VK_RCONTROL:
-		GLOW_IN_VK(VK_CONTROL, GLOW_CONTROL);
-		GLOW_IN_VK(VK_BACK, GLOW_BACKSPACE);
-		GLOW_IN_VK(VK_RETURN, GLOW_ENTER);
-		GLOW_IN_VK(VK_TAB, GLOW_TAB);
-		GLOW_IN_VK(VK_CLEAR, "clear");
-		GLOW_IN_VK(VK_LEFT, GLOW_LEFT_ARROW);
-		GLOW_IN_VK(VK_DELETE, GLOW_DELETE);
-		GLOW_IN_VK(VK_UP, GLOW_UP_ARROW);
-		GLOW_IN_VK(VK_DOWN, GLOW_DOWN_ARROW);
-		GLOW_IN_VK(VK_RIGHT, GLOW_RIGHT_ARROW);
+    switch(in){
+        GLOW_IN_VK(VK_ESCAPE, GLOW_ESCAPE);
+        case VK_LSHIFT: case VK_RSHIFT:
+        GLOW_IN_VK(VK_SHIFT, GLOW_SHIFT);
+        case VK_LCONTROL: case VK_RCONTROL:
+        GLOW_IN_VK(VK_CONTROL, GLOW_CONTROL);
+        GLOW_IN_VK(VK_BACK, GLOW_BACKSPACE);
+        GLOW_IN_VK(VK_RETURN, GLOW_ENTER);
+        GLOW_IN_VK(VK_TAB, GLOW_TAB);
+        GLOW_IN_VK(VK_CLEAR, "clear");
+        GLOW_IN_VK(VK_LEFT, GLOW_LEFT_ARROW);
+        GLOW_IN_VK(VK_DELETE, GLOW_DELETE);
+        GLOW_IN_VK(VK_UP, GLOW_UP_ARROW);
+        GLOW_IN_VK(VK_DOWN, GLOW_DOWN_ARROW);
+        GLOW_IN_VK(VK_RIGHT, GLOW_RIGHT_ARROW);
         GLOW_OEM_VK(1);
         GLOW_OEM_VK(2);
         GLOW_OEM_VK(3);
@@ -128,31 +134,31 @@ static const char *glow_get_key_string(unsigned in, unsigned *len){
         GLOW_OEM_VK(7);
         GLOW_OEM_VK(8);
         GLOW_OEM_VK(102);
-		GLOW_IN_VK(VK_NONAME, "NONAME");
-#undef GLOW_IN_VK
-		default: return NULL;
-	}
+        GLOW_IN_VK(VK_NONAME, "NONAME");
+    #undef GLOW_IN_VK
+        default: return NULL;
+    }
 }
 
 /*****************************************************************************/
 
 static const PIXELFORMATDESCRIPTOR glow_pixel_format = {
-	sizeof(PIXELFORMATDESCRIPTOR),
-	1, /* Version, always 1 */
-	PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-	PFD_TYPE_RGBA,
-	32, /* Color Depth */
-	0, 0, 0, 0, 0, 0, /* Individual color depths and shifts */
-	0,
-	0,
-	0,
-	0, 0, 0, 0,
-	16, /* Depth buffer size */
-	8, /* Stencil buffer size */
-	0,
-	PFD_MAIN_PLANE,
-	0,
-	0, 0, 0
+    sizeof(PIXELFORMATDESCRIPTOR),
+    1, /* Version, always 1 */
+    PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+    PFD_TYPE_RGBA,
+    32, /* Color Depth */
+    0, 0, 0, 0, 0, 0, /* Individual color depths and shifts */
+    0,
+    0,
+    0,
+    0, 0, 0, 0,
+    16, /* Depth buffer size */
+    8, /* Stencil buffer size */
+    0,
+    PFD_MAIN_PLANE,
+    0,
+    0, 0, 0
 };
 
 /******************************************************************************/
@@ -187,22 +193,22 @@ static LRESULT WINAPI glow_window_proc(HWND wnd, UINT msg, WPARAM parm, LPARAM l
 /******************************************************************************/
 
 BOOL WINAPI DllMain(HINSTANCE app, DWORD reason, LPVOID reserved){
-
+    const HICON icon = LoadIcon(app, MAKEINTRESOURCE(101));
     WNDCLASS wc = {
         CS_OWNDC,
         glow_window_proc,
         0,
         0,
         0,
-        NULL,
+        icon,
         NULL,
         (HBRUSH)(COLOR_BACKGROUND),
         NULL,
         GLOW_CLASS_NAME
     };
-    
+
     wc.hInstance = glow_app = app;
-	
+
     RegisterClass(&wc);
 }
 
@@ -243,22 +249,23 @@ void Glow_ViewportSize(unsigned w, unsigned h,
 
 void Glow_CreateWindow(struct Glow_Window *out,
     unsigned w, unsigned h, const char *title, int flags){
-	
+    
     if(glow_app == NULL){
+        const HINSTANCE app = glow_app = GetModuleHandle(NULL);
+        const HICON icon = LoadIcon(app, MAKEINTRESOURCE(101));
         WNDCLASS wc = {
             CS_OWNDC,
             glow_window_proc,
             0,
             0,
             0,
-            NULL,
+            icon,
             NULL,
             (HBRUSH)(COLOR_BACKGROUND),
             NULL,
             GLOW_CLASS_NAME
         };
-        wc.hInstance = glow_app = GetModuleHandle(NULL);
-    	
+        
         RegisterClass(&wc);
     }
 
@@ -286,8 +293,8 @@ unsigned Glow_WindowStructSize(){
 /******************************************************************************/
 
 void Glow_DestroyWindow(struct Glow_Window *w){
-	wglDeleteContext(w->ctx.ctx);
-	DestroyWindow(w->win);
+    wglDeleteContext(w->ctx.ctx);
+    DestroyWindow(w->win);
 }
 
 /******************************************************************************/
@@ -299,22 +306,22 @@ void Glow_SetTitle(struct Glow_Window *w, const char *title){
 /******************************************************************************/
 
 void Glow_ShowWindow(struct Glow_Window *w){
-	ShowWindow(w->win, SW_SHOWNORMAL);
+    ShowWindow(w->win, SW_SHOWNORMAL);
 }
 
 /******************************************************************************/
 
 void Glow_HideWindow(struct Glow_Window *w){
-	ShowWindowAsync(w->win, SW_HIDE);
+    ShowWindowAsync(w->win, SW_HIDE);
 }
 
 /******************************************************************************/
 
 void Glow_FlipScreen(struct Glow_Window *w){
-	wglMakeCurrent(w->dc, w->ctx.ctx);
-	glFinish();
-	wglSwapLayerBuffers(w->dc, WGL_SWAP_MAIN_PLANE);
-	glClear(GL_COLOR_BUFFER_BIT);
+    wglMakeCurrent(w->dc, w->ctx.ctx);
+    glFinish();
+    wglSwapLayerBuffers(w->dc, WGL_SWAP_MAIN_PLANE);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 /******************************************************************************/
@@ -340,28 +347,28 @@ static BOOL glow_translate_event(const MSG *msg, struct Glow_Window *window,
             out_event->type = pressed ?
                 eGlowKeyboardPressed : eGlowKeyboardReleased;
             {
-			    const char c = glow_get_key_char(msg->wParam),
-				    *c_str;
-			    unsigned len;
-			    if(c){
-				    out_event->value.key[0] = c;
-				    out_event->value.key[1] = '\0';
+                const char c = glow_get_key_char(msg->wParam),
+                    *c_str;
+                unsigned len;
+                if(c){
+                    out_event->value.key[0] = c;
+                    out_event->value.key[1] = '\0';
                     return TRUE;
-			    }
-			    else if ((c_str = glow_get_key_string(msg->wParam, &len))){
-				    assert(len + 1 < GLOW_MAX_KEY_NAME_SIZE);
-				    memcpy(out_event->value.key, c_str, len);
-				    out_event->value.key[len] = '\0';
+                }
+                else if ((c_str = glow_get_key_string(msg->wParam, &len))){
+                    assert(len + 1 < GLOW_MAX_KEY_NAME_SIZE);
+                    memcpy(out_event->value.key, c_str, len);
+                    out_event->value.key[len] = '\0';
                     return TRUE;
-			    }
-			    else /* Drop input */
+                }
+                else /* Drop input */
                     return FALSE;
             }
+        case WM_LBUTTONDOWN: 
+        case WM_RBUTTONDOWN:
+            pressed = TRUE;
         case WM_RBUTTONUP:
         case WM_LBUTTONUP:
-            pressed = TRUE;
-        case WM_LBUTTONDOWN:
-        case WM_RBUTTONDOWN:
             glow_translate_local_mouse_pos(&msg->pt,
                 window, out_event->value.mouse.xy);
                 
@@ -422,7 +429,7 @@ struct Glow_Context *Glow_GetContext(
 /******************************************************************************/
 
 void Glow_MakeCurrent(struct Glow_Context *ctx){
-	wglMakeCurrent(ctx->dc, ctx->ctx);
+    wglMakeCurrent(ctx->dc, ctx->ctx);
 }
 
 /******************************************************************************/
