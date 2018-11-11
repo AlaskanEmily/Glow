@@ -258,7 +258,7 @@ void Glow_FlipScreen(struct Glow_Window *window){
     Glow_MakeCurrent(window->ctx);
     glFlush();
     glXSwapBuffers(window->dpy, window->wnd);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
 /******************************************************************************/
@@ -328,8 +328,8 @@ glow_get_event_start:
 unsigned Glow_GetEvent(struct Glow_Window *window,
     struct Glow_Event *out_event){
     return glow_get_event(window, 0, out_event);
-
 }
+
 /******************************************************************************/
 
 void Glow_WaitEvent(struct Glow_Window *window, struct Glow_Event *out_event){
@@ -388,7 +388,7 @@ int Glow_CreateContext(struct Glow_Window *window,
     Glow_MakeCurrent(window->ctx);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glClearColor(0.75f, 0.333f, 0.0f, 1.0f);
     glFinish();
     
@@ -429,3 +429,5 @@ struct Glow_Window *Glow_CreateLegacyWindow(unsigned w, unsigned h,
     Glow_MakeCurrent(ctx);
     return window;
 }
+
+/******************************************************************************/

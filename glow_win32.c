@@ -15,7 +15,7 @@
 /******************************************************************************/
 
 #define GLOW_WINDOW_STYLE\
-	(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
+    (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
 
 /******************************************************************************/
 
@@ -66,12 +66,12 @@ static void glow_translate_local_mouse_pos(const POINT *in_pnt,
     pnt.y = in_pnt->y - (GetSystemMetrics(SM_CYFRAME) +
         GetSystemMetrics(SM_CYCAPTION) +
         GetSystemMetrics(SM_CXPADDEDBORDER));
-
+    
     GetWindowRect(w->win, &rect);
-
+    
     out_pos[0] = (unsigned short)(pnt.x - rect.left);
     out_pos[1] = (unsigned short)(pnt.y - rect.top);
-
+    
     if(!PtInRect(&rect, pnt)){
         if(pnt.x < rect.left)
             out_pos[0] = 0;
@@ -106,7 +106,7 @@ static char glow_get_key_char(unsigned in){
         return ']';
     if(in == VK_OEM_7)
         return '\'';
-        
+    
     return '\0';
 }
 
@@ -140,7 +140,7 @@ static const char *glow_get_key_string(unsigned in, unsigned *len){
         GLOW_OEM_VK(8);
         GLOW_OEM_VK(102);
         GLOW_IN_VK(VK_NONAME, "NONAME");
-    #undef GLOW_IN_VK
+#undef GLOW_IN_VK
         default: return NULL;
     }
 }
@@ -177,13 +177,17 @@ static LRESULT WINAPI glow_window_proc(HWND wnd, UINT msg, WPARAM parm, LPARAM l
         window->ctx.dc = window->dc;
         wglMakeCurrent(window->dc, window->ctx.ctx);
         glClearColor(0.75f, 0.333f, 0.0f, 1.0f);
+        SetFocus(wnd);
         return 0;
     }
     else if(msg == WM_SHOWWINDOW){
-        if(parm == FALSE)
+        if(parm == FALSE){
             PostQuitMessage(EXIT_SUCCESS);
-        else
+        }
+        else{
             ShowWindow(wnd, SW_SHOWNORMAL);
+            SetFocus(wnd);
+        }
         return 0;
     }
     else if(msg == WM_CLOSE || msg == WM_DESTROY){
@@ -199,7 +203,7 @@ static LRESULT WINAPI glow_window_proc(HWND wnd, UINT msg, WPARAM parm, LPARAM l
 
 BOOL WINAPI DllMain(HINSTANCE app, DWORD reason, LPVOID reserved){
     const HICON icon = LoadIcon(app, MAKEINTRESOURCE(101));
-	const HANDLE cursor = LoadCursor(NULL, IDC_ARROW);
+    const HANDLE cursor = LoadCursor(NULL, IDC_ARROW);
     WNDCLASS wc = {
         CS_OWNDC,
         glow_window_proc,
@@ -212,9 +216,9 @@ BOOL WINAPI DllMain(HINSTANCE app, DWORD reason, LPVOID reserved){
         NULL,
         GLOW_CLASS_NAME
     };
-
+    
     wc.hInstance = glow_app = app;
-
+    
     RegisterClass(&wc);
 }
 
@@ -235,7 +239,7 @@ void Glow_ViewportSize(unsigned w, unsigned h,
     size.right = w;
     size.bottom = h;
     
-    AdjustWindowRect(&size, WS_OVERLAPPEDWINDOW, FALSE);
+    AdjustWindowRect(&size, GLOW_WINDOW_STYLE, FALSE);
 
     size.bottom += (GetSystemMetrics(SM_CYFRAME) +
         GetSystemMetrics(SM_CYCAPTION) +
@@ -259,7 +263,7 @@ void Glow_CreateWindow(struct Glow_Window *out,
     if(glow_app == NULL){
         const HINSTANCE app = glow_app = GetModuleHandle(NULL);
         const HICON icon = LoadIcon(app, MAKEINTRESOURCE(101));
-		const HANDLE cursor = LoadCursor(NULL, IDC_ARROW);
+        const HANDLE cursor = LoadCursor(NULL, IDC_ARROW);
         WNDCLASS wc = {
             CS_OWNDC,
             glow_window_proc,
@@ -278,12 +282,12 @@ void Glow_CreateWindow(struct Glow_Window *out,
 
     {
         RECT size;
-        DWORD style = ((flags & GLOW_UNDECORATED) == 0) ?
-            GLOW_WINDOW_STYLE : WS_OVERLAPPED) |
-
-        if((flags & GLOW_RESIZABLE) != 0){
-            style |= WS_THICKFRAME | WS_MAXIMIZEBOX;
-        }
+        /* Set the style based on the flags. */
+        const DWORD style =
+            (((flags & GLOW_UNDECORATED) == 0) ?
+                GLOW_WINDOW_STYLE : WS_OVERLAPPED) |
+            (((flags & GLOW_RESIZABLE) == 0) ?
+                0 : (WS_THICKFRAME | WS_MAXIMIZEBOX));
         
         size.left = 0;
         size.top = 0;
@@ -293,15 +297,7 @@ void Glow_CreateWindow(struct Glow_Window *out,
         size.bottom += (GetSystemMetrics(SM_CYFRAME) +
             GetSystemMetrics(SM_CYCAPTION) +
             GetSystemMetrics(SM_CXPADDEDBORDER));
-        out->win = CreateWindow(GLOW_CLASS_NAME,
-            title,
-            style,
-            64, 64,
-            size.right, size.bottom,
-            NULL,
-            NULL,
-            glow_app,
-            out);
+        out->win = CreateWindow(GLOW_CLASS_NAME, title, style, 64, 64, size.right, size.bottom, NULL, NULL, glow_app, out);
     }
 }
 
@@ -342,7 +338,7 @@ void Glow_FlipScreen(struct Glow_Window *w){
     wglMakeCurrent(w->dc, w->ctx.ctx);
     glFinish();
     wglSwapLayerBuffers(w->dc, WGL_SWAP_MAIN_PLANE);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 }
 
 /******************************************************************************/
