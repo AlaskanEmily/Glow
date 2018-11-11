@@ -14,6 +14,11 @@
 
 /******************************************************************************/
 
+#define GLOW_WINDOW_STYLE\
+	(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
+
+/******************************************************************************/
+
 struct Glow_Context{
     HDC dc;
     HGLRC ctx;
@@ -273,16 +278,30 @@ void Glow_CreateWindow(struct Glow_Window *out,
 
     {
         RECT size;
+        DWORD style = ((flags & GLOW_UNDECORATED) == 0) ?
+            GLOW_WINDOW_STYLE : WS_OVERLAPPED) |
+
+        if((flags & GLOW_RESIZABLE) != 0){
+            style |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+        }
         
         size.left = 0;
         size.top = 0;
         size.right = w;
         size.bottom = h;
-        AdjustWindowRect(&size, WS_OVERLAPPEDWINDOW, TRUE);
+        AdjustWindowRect(&size, style, TRUE);
         size.bottom += (GetSystemMetrics(SM_CYFRAME) +
             GetSystemMetrics(SM_CYCAPTION) +
             GetSystemMetrics(SM_CXPADDEDBORDER));
-        out->win = CreateWindow(GLOW_CLASS_NAME, title, WS_OVERLAPPEDWINDOW, 64, 64, size.right, size.bottom, NULL, NULL, glow_app, out);
+        out->win = CreateWindow(GLOW_CLASS_NAME,
+            title,
+            style,
+            64, 64,
+            size.right, size.bottom,
+            NULL,
+            NULL,
+            glow_app,
+            out);
     }
 }
 
