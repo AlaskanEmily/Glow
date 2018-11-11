@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-#ifdef __GNUC__ && __GNUC__ > 4
+#if defined ( __GNUC__ ) && ( __GNUC__ > 4 )
 #define GLOW_CONST __attribute__((const))
 #define GLOW_PURE __attribute__((pure))
 #define GLOW_RETURNS_NOT_NULL __attribute__((returns_nonnull))
