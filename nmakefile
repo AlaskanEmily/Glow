@@ -9,8 +9,13 @@ glow_win32.obj: glow_win32.c glow.h
 glow.lib: glow_win32.obj
 	lib /NOLOGO /OUT:glow.lib glow_win32.obj
 
-glow_win32_shared.obj: glow_win32.c glow.h
-	cl /DGLOW_EXPORTS /DGLOW_DLL /Foglow_win32.obj /c glow_win32.c /nologo
+glow.dll: glow_win32.obj
+	link /nologo /dll /out:glow.dll /implib:glow.lib OpenGL32.lib gdi32.lib user32.lib glow_win32.obj
 
-glow.dll: glow_win32_shared.obj
-	link /nologo /dll /out:glow.dll /implib:glow.lib OpenGL32.lib gdi32.lib user32.lib glow_win32_shared.obj
+clean:
+	del glow.dll > nul || echo > nul
+	del glow.lib > nul || echo > nul
+	del glow.exp > nul || echo > nul
+	del *.obj > nul || echo > nul
+	del *.pdb > nul || echo > nul
+	del *.ilk > nul || echo > nul
