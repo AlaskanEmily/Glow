@@ -108,6 +108,12 @@ void Glow_ViewportSize(unsigned w, unsigned h,
 
 /******************************************************************************/
 
+void *Glow_GetProcAddress(const char *name){
+    return (void*)glXGetProcAddress((GLubyte*)name);
+}
+
+/******************************************************************************/
+
 void Glow_CreateWindow(struct Glow_Window *window,
     unsigned w, unsigned h, const char *title, int flags){
     

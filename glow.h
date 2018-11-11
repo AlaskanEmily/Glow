@@ -117,6 +117,14 @@ GLOW_EXPORT void Glow_ViewportSize(unsigned w, unsigned h,
 GLOW_EXPORT void *Glow_GetSystemWindow(struct Glow_Window *window);
 
 /**
+ * @brief Gets an extension function address.
+ *
+ * Note that is NOT guaranteed to return NULL for a missing function.
+ * Use glGetString(GL_EXTENSIONS) to determine if an extension is present.
+ */
+GLOW_EXPORT void *Glow_GetProcAddress(const char *name);
+
+/**
  * @brief Gets the size of the Window struct.
  *
  * You must allocate the memory for windows on the application side. This will
