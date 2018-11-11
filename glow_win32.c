@@ -194,6 +194,7 @@ static LRESULT WINAPI glow_window_proc(HWND wnd, UINT msg, WPARAM parm, LPARAM l
 
 BOOL WINAPI DllMain(HINSTANCE app, DWORD reason, LPVOID reserved){
     const HICON icon = LoadIcon(app, MAKEINTRESOURCE(101));
+	const HANDLE cursor = LoadCursor(NULL, IDC_ARROW);
     WNDCLASS wc = {
         CS_OWNDC,
         glow_window_proc,
@@ -201,7 +202,7 @@ BOOL WINAPI DllMain(HINSTANCE app, DWORD reason, LPVOID reserved){
         0,
         0,
         icon,
-        NULL,
+        cursor,
         (HBRUSH)(COLOR_BACKGROUND),
         NULL,
         GLOW_CLASS_NAME
@@ -253,6 +254,7 @@ void Glow_CreateWindow(struct Glow_Window *out,
     if(glow_app == NULL){
         const HINSTANCE app = glow_app = GetModuleHandle(NULL);
         const HICON icon = LoadIcon(app, MAKEINTRESOURCE(101));
+		const HANDLE cursor = LoadCursor(NULL, IDC_ARROW);
         WNDCLASS wc = {
             CS_OWNDC,
             glow_window_proc,
@@ -260,7 +262,7 @@ void Glow_CreateWindow(struct Glow_Window *out,
             0,
             0,
             icon,
-            NULL,
+            cursor,
             (HBRUSH)(COLOR_BACKGROUND),
             NULL,
             GLOW_CLASS_NAME
