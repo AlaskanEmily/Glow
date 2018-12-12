@@ -78,7 +78,7 @@ typedef unsigned short glow_pixel_coords_t[2];
 struct Glow_Event{
 	enum Glow_EventType type;
 	union {
-                /* String representing a key. Always null-terminated */
+        /* String representing a key. Always null-terminated */
 		char key[GLOW_MAX_KEY_NAME_SIZE];
         struct {
 			glow_pixel_coords_t xy;
