@@ -402,6 +402,11 @@ static BOOL glow_translate_event(const MSG *msg, struct Glow_Window *window,
             out_event->type = pressed ?
                 eGlowMousePressed : eGlowMouseReleased;
             return TRUE;
+		case WM_MOUSEMOVE:
+			glow_translate_local_mouse_pos(&msg->pt,
+				window, out_event->value.mouse.xy);
+            out_event->type = eGlowMouseMoved;
+            return TRUE;
         case WM_DESTROY:
         case WM_CLOSE:
         case WM_QUIT:

@@ -318,6 +318,11 @@ glow_get_event_start:
                             return 0;
                 }
                 return 1;
+            case MotionNotify:
+                    out->type = eGlowMouseMoved;
+                    out->value.mouse.xy[0] = event.xmotion.x;
+                    out->value.mouse.xy[1] = event.xmotion.y;
+                return 1;
             case UnmapNotify:
             case DestroyNotify:
                 out->type = eGlowQuit;

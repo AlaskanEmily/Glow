@@ -39,6 +39,7 @@ extern "C" {
 enum Glow_EventType {
 	eGlowKeyboardPressed,
 	eGlowKeyboardReleased,
+	eGlowMouseMoved,
 	eGlowMousePressed,
 	eGlowMouseReleased,
 	eGlowResized,
