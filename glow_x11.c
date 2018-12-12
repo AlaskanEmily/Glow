@@ -29,7 +29,9 @@
     (StructureNotifyMask\
     |KeyPressMask\
     |KeyReleaseMask\
-    |ButtonPress\
+    |ButtonPressMask\
+    |ButtonReleaseMask\
+    |PointerMotionMask\
     |ExposureMask)
 
 /* Gets a display, first using the DISPLAY environment variable, then using the
