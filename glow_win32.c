@@ -359,6 +359,23 @@ void Glow_GetWindowSize(const struct Glow_Window *window,
 
 /******************************************************************************/
 
+GLOW_PURE static enum Glow_MouseButton glow_message_button(const MSG *msg){
+	switch(msg->message){
+		default:
+			assert(NULL == "Invalid message for glow_message_button");
+			/* FALLTHROUGH */
+        case WM_LBUTTONDOWN: 
+        case WM_LBUTTONUP:
+			return eGlowLeft;
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONUP:
+			return eGlowRight;
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONUP:
+			return eGlowMiddle;
+	}
+}
+
 static BOOL glow_translate_event(const MSG *msg, struct Glow_Window *window,
     struct Glow_Event *out_event){
     BOOL pressed = FALSE;
@@ -389,16 +406,18 @@ static BOOL glow_translate_event(const MSG *msg, struct Glow_Window *window,
             }
         case WM_LBUTTONDOWN: 
         case WM_RBUTTONDOWN:
+        case WM_MBUTTONDOWN:
             pressed = TRUE;
+			/* FALLTHROUGH */
         case WM_RBUTTONUP:
         case WM_LBUTTONUP:
+        case WM_MBUTTONUP:
             glow_translate_local_mouse_pos(&msg->pt,
                 window, out_event->value.mouse.xy);
-                
-            out_event->value.mouse.button =
-                (msg->message == WM_LBUTTONUP ||
-                    msg->message == WM_LBUTTONDOWN) ?
-                eGlowLeft : eGlowRight;
+            
+			/* Select the button */
+            out_event->value.mouse.button = glow_message_button(msg);
+			
             out_event->type = pressed ?
                 eGlowMousePressed : eGlowMouseReleased;
             return TRUE;
