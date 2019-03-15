@@ -11,11 +11,13 @@ AR?=ar
 RANLIB?=ranlib
 GLOWTARGET?=x11
 
+X11INCLUDE=-I/usr/X11R6/include
+
 glow_x11.o: glow_x11.c glow.h
-	$(CC) $(CFLAGS) -c glow_x11.c -o glow_x11.o
+	$(CC) $(CFLAGS) $(X11INCLUDE) -c glow_x11.c -o glow_x11.o
 
 glow_x11.os: glow_x11.c glow.h
-	$(CC) $(CFLAGS)$(FPICFLAGS) -c glow_x11.c -o glow_x11.os
+	$(CC) $(CFLAGS)$(FPICFLAGS) $(X11INCLUDE) -c glow_x11.c -o glow_x11.os
 
 libglow.so: glow_$(GLOWTARGET).os
 	$(LINKER) $(SHAREDFLAGS) glow_$(GLOWTARGET).os -o libglow.so
