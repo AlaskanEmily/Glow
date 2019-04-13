@@ -259,6 +259,9 @@ GLOW_EXPORT void Glow_MakeCurrent(struct Glow_Context *ctx);
  * @warning Unlike all the other calls for Glow, this one uses malloc to
  * allocate memory. You must call Glow_DestroyWindow and then free on the
  * returned Window to properly free the memory.
+ *
+ * In general this is not recommended except for very basic use, to get to
+ * "Hello, World!".
  * 
  * @sa Glow_CreateLegacyContext
  * @sa Glow_CreateWindow
