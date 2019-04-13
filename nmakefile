@@ -12,6 +12,12 @@ glow.lib: glow_win32.obj
 glow.dll: glow_win32.obj
 	link /nologo /dll /out:glow.dll /implib:glow.lib OpenGL32.lib gdi32.lib user32.lib glow_win32.obj
 
+glow_sdl2.obj: glow_sdl2.c glow.h
+	cl /I"$(MAKEDIR)\include" /DGLOW_EXPORTS /DGLOW_DLL /c glow_sdl2.c /nologo
+
+sdl2: glow_sdl2.obj
+	link /nologo /dll /out:glow.dll /implib:glow.lib sdl2.lib glow_sdl2.obj /LIBPATH:"$(MAKEDIR)\lib"
+	
 clean:
 	del glow.dll > nul || echo > nul
 	del glow.lib > nul || echo > nul
