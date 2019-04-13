@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2018 Alaskan Emily, Transnat Games
+/* Copyright (C) 2017-2019 Alaskan Emily, Transnat Games
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
