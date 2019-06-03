@@ -11,10 +11,20 @@ glow_win32.obj: glow_win32.c glow.h
 glow.dll glow.lib:
 	link /nologo /dll /out:glow.dll /implib:glow.lib OpenGL32.lib gdi32.lib user32.lib glow_win32.obj
 
-.else
+.elif defined(OS) && (${OS} == "CYGWIN")
 
-all: libglow.so libglow.a
+all: libglow.dll
 
 .include "gcc.mk"
+
+libglow.dll: glow_win32.o
+	$(CC) -shared -o libglow.dll glow_win32.o -lOpenGL32 -lGDI32
+
+.else
+
+all: 
+	echo ${OS}
+
+# .include "gcc.mk"
 
 .endif

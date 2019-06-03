@@ -16,6 +16,9 @@ X11INCLUDE=-I/usr/X11R6/include
 glow_x11.o: glow_x11.c glow.h
 	$(CC) $(CFLAGS) $(X11INCLUDE) -c glow_x11.c -o glow_x11.o
 
+glow_win32.o: glow_win32.c glow.h
+	$(CC) $(CFLAGS) -DGLOW_DLL -D_WIN32 -DGLOW_EXPORTS -c glow_win32.c -o glow_win32.o
+
 glow_x11.os: glow_x11.c glow.h
 	$(CC) $(CFLAGS) $(FPICFLAGS) $(X11INCLUDE) -c glow_x11.c -o glow_x11.os
 

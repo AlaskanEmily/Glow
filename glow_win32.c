@@ -58,6 +58,16 @@ static HINSTANCE glow_app = NULL;
 
 /******************************************************************************/
 
+#ifdef __CYGWIN__
+
+#ifndef SM_CXPADDEDBORDER
+#define SM_CXPADDEDBORDER 92
+#endif
+
+#endif
+
+/******************************************************************************/
+
 static void glow_translate_local_mouse_pos(const POINT *in_pnt,
     struct Glow_Window *w, glow_pixel_coords_t out_pos){
     RECT rect;
@@ -220,6 +230,8 @@ BOOL WINAPI DllMain(HINSTANCE app, DWORD reason, LPVOID reserved){
     wc.hInstance = glow_app = app;
     
     RegisterClass(&wc);
+    
+    return TRUE;
 }
 
 /******************************************************************************/
@@ -247,8 +259,6 @@ void Glow_ViewportSize(unsigned w, unsigned h,
     
     {
         const DWORD w_thickness = (size.right - w), h_thickness = (size.bottom - h);
-        
-        printf("w_thickness = %i, h_thickness = %i\n", w_thickness, h_thickness);
         
         out_w[0] = w + w_thickness;
         out_h[0] = h + h_thickness;
