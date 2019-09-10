@@ -8,6 +8,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 
 #ifdef __APPLE__
 
@@ -24,6 +25,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define GLOW_X_EVENT_MASK\
     (StructureNotifyMask\
@@ -287,6 +289,23 @@ glow_get_event_start:
                     XComposeStatus compose;
                     XLookupString(&event.xkey, out->value.key,
                         GLOW_MAX_KEY_NAME_SIZE, &sym, &compose);
+#define GLOW_KEYSM(SYM, STR) case XK_ ## SYM: strcpy(out->value.key, ("" GLOW_ ## STR)); break;
+                    switch(sym){
+                        GLOW_KEYSM(Escape, ESCAPE);
+                        GLOW_KEYSM(Up, UP_ARROW);
+                        GLOW_KEYSM(Down, DOWN_ARROW);
+                        GLOW_KEYSM(Left, LEFT_ARROW);
+                        GLOW_KEYSM(Right, RIGHT_ARROW);
+                        GLOW_KEYSM(Return, RETURN);
+                        GLOW_KEYSM(Tab, TAB);
+                        
+                        case XK_Control_L: /* FALLTHROUGH */
+                        GLOW_KEYSM(Control_R, CONTROL);
+
+                        case XK_Shift_R: /* FALLTHROUGH */
+                        GLOW_KEYSM(Shift_L, SHIFT);
+                    }
+
                 }
                 out->type = press ?
                     eGlowKeyboardPressed : eGlowKeyboardReleased;
@@ -399,10 +418,10 @@ int Glow_CreateContext(struct Glow_Window *window,
     
     window->ctx = out;
     Glow_MakeCurrent(window->ctx);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glClearColor(0.75f, 0.333f, 0.0f, 1.0f);
+    /* glClearColor(0.75f, 0.333f, 0.0f, 1.0f); */
     glFinish();
     
     return 0;
